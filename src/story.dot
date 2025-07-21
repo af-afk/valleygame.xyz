@@ -1,0 +1,16 @@
+digraph {
+  GameDeposit -> "MintDebtTokenArgs.FromDeposit"
+  GameConclude -> "MintDebtTokenArgs.FromPreviousGame"
+  "MintDebtTokenArgs.FromServer"
+  {
+    "MintDebtTokenArgs.FromDeposit"
+    "MintDebtTokenArgs.FromPreviousGame"
+    "MintDebtTokenArgs.FromServer"
+  } -> MintDebtTokenArgs -> GameMintDebtToken -> GameEnter -> "GamePrediction.BeginGame"
+  GamePrediction -> "GamePrediction.Prediction"
+  {
+    "GamePrediction.BeginGame"
+    "GamePrediction.Prediction"
+  } -> GamePrediction -> GameConclude
+  MintDebtTokenArgs -> GameWithdraw
+}

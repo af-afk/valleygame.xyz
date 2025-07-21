@@ -1,0 +1,90 @@
+
+enum DepositStatus {
+  """
+  Unspent amount that was tracked as deposited by the user.
+  """
+  Unspent,
+
+  """
+  Amount that was withdrawn, and consumed.
+  """
+  Withdrawn,
+
+  """
+  Amount that was consumed during normal gameplay, and then
+  converted into a new amount as a result of the wins and losses
+  the player racked up.
+  """
+  AfterGame,
+}
+
+"""
+Deposit made by a user, possibly including a LayerZero amount,
+which can be used for optimistic bridging from several chains.
+"""
+type Deposit {
+  lzTx: String
+
+  """
+  Recorded in the database ticket ID from the deposits contract.
+  """
+  ticketId: String!
+
+  """
+  Status of the deposit, which indicates either a consumed coin, or
+  one that can be spent.
+  """
+  status: DepositStatus!
+
+  """
+  Amount that this deposit is worth at present.
+  """
+  amount: String!
+}
+
+type Lobby {
+  """
+  Random nonce that indicates the soon to be created Game id.
+  """
+  randomNonce: String!
+
+  """
+  More information on the game that this lobby is for.
+  """
+  game: Game!
+
+  """
+  Locked in players who can play the game.
+  """
+  lockedInPlayers: [String!]
+}
+
+type Game {
+  creator: String!
+  roundLimit: Int!
+  bipPoints: String!
+  fixedBuyin: String!
+  whitelistedIds: [String!]!
+  randomNonce: String!
+}
+
+type Prediction {
+  amount: String!
+  addr: String!
+}
+
+type Round {
+  ongoing: Boolean!
+  predictions: [Prediction!]
+}
+
+type Ongoing {
+  rounds: [Round!]!
+  game: Game!
+}
+
+type Query {
+  lobbies: [Lobby!]!
+  ongoing: [Ongoing!]!
+  deposits(addr: String!): [Deposit!]!
+}

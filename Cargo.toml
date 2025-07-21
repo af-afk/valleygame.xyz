@@ -1,0 +1,56 @@
+[package]
+name = "valleygame"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "contract"
+path = "src/contract/main.rs"
+
+[[bin]]
+name = "frontend"
+path = "src/frontend/main.rs"
+
+[[bin]]
+name = "graph"
+path = "src/graph/main.rs"
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+strip = true
+lto = "fat"
+debug = false
+rpath = false
+debug-assertions = false
+incremental = false
+
+[lib]
+name = "libvalleygame"
+
+[dependencies]
+borsh = { version = "1.5.7", default-features = false, features = ["derive"] }
+deadpool-postgres = "0.14.1"
+serde_json = "1.0.141"
+stylus-sdk = "0.9.0"
+
+[dependencies.ed25519-dalek]
+version = "2.1.1"
+default-features = false
+features = ["alloc", "fast", "digest"]
+
+[dependencies.arrayvec]
+# Pointing to this repo for now since the original didn't implement Borsh properly.
+version = "0.7.6"
+default-features = false
+features = ["borsh"]
+git = "https://github.com/af-afk/arrayvec"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+async-graphql = "7.0.17"
+tokio = { version = "1.46.1", features = ["macros", "rt-multi-thread"] }
+tokio-postgres = "0.7.13"
+lambda_http = "0.15.2"
+lambda_runtime = "0.14.3"
+postgres-native-tls = "0.5.1"
+native-tls = "0.2.14"
