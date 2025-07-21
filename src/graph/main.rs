@@ -5,7 +5,7 @@ use async_graphql::{
 
 use lambda_http::{
     http::{Method, StatusCode},
-    Body as LambdaBody, Error as LambdaError, Request, Response as LambdaResponse,
+    Body as LambdaBody, Error as LambdaError, Request as LambdaRequest, Response as LambdaResponse,
 };
 
 use lambda_runtime::service_fn;
@@ -19,9 +19,9 @@ use tokio;
 static SCHEMA: LazyLock<Schema<Query, Mutation, EmptySubscription>> =
     LazyLock::new(|| Schema::build(Query, Mutation, EmptySubscription).finish());
 
+mod consts;
 mod db;
 mod schema;
-mod consts;
 
 use schema::*;
 
@@ -58,7 +58,13 @@ fn error_response(
         .body(LambdaBody::Text(response_body))?)
 }
 
-async fn handle_request(request: Request) -> Result<LambdaResponse<LambdaBody>, LambdaError> {
+async fn handle_request(request: LambdaRequest) -> Result<LambdaResponse<LambdaBody>, LambdaError> {
+    let auth = match request.headers().get("Authorization") {
+        Some(s) => AuthContext {
+            auth: Some(s.to_str().unwrap().to_owned()),
+        },
+        None => AuthContext::default(),
+    };
     let query = if request.method() == Method::POST {
         graphql_request_from_post(request)
     } else {
@@ -68,7 +74,7 @@ async fn handle_request(request: Request) -> Result<LambdaResponse<LambdaBody>, 
         Err(e) => {
             return error_response(StatusCode::BAD_REQUEST, graphql_error(e));
         }
-        Ok(query) => query,
+        Ok(query) => query.data(auth),
     };
     let response_body = serde_json::to_string(&SCHEMA.execute(query).await).unwrap();
     Ok(LambdaResponse::builder()
@@ -76,7 +82,7 @@ async fn handle_request(request: Request) -> Result<LambdaResponse<LambdaBody>, 
         .body(LambdaBody::Text(response_body))?)
 }
 
-fn graphql_request_from_post(request: Request) -> Result<GraphqlRequest, ClientError> {
+fn graphql_request_from_post(request: LambdaRequest) -> Result<GraphqlRequest, ClientError> {
     match request.into_body() {
         LambdaBody::Empty => Err(ClientError::EmptyBody),
         LambdaBody::Text(text) => {

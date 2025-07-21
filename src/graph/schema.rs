@@ -80,9 +80,22 @@ pub struct Ongoing {
 
 pub struct Query;
 
+#[derive(Debug, Clone)]
+pub struct AuthContext {
+    pub auth: Option<String>,
+}
+
+impl Default for AuthContext {
+    fn default() -> Self {
+        AuthContext { auth: None }
+    }
+}
+
 #[Object]
 impl Query {
-    async fn lobbies(&self) -> Result<Vec<Lobby>> {
+    async fn lobbies(&self, ctx: &async_graphql::Context<'_>) -> Result<Vec<Lobby>> {
+        let AuthContext { auth } = ctx.data::<AuthContext>().unwrap();
+        auth.clone().unwrap();
         DB.get()
             .await
             .unwrap()
