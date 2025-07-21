@@ -88,3 +88,15 @@ type Query {
   ongoing: [Ongoing!]!
   deposits(addr: String!): [Deposit!]!
 }
+
+type Mutation {
+  registerGame(
+    creator: String!
+    roundLimit: Int!
+    bipPoints: String!
+    fixedBuyin: String!
+    whitelistedIds: [String!]!
+    randomNonce: String!,
+    sig: String!
+  ): String!
+}
